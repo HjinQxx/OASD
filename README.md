@@ -33,7 +33,7 @@ open source ai design - 기말과제
 
 
 
-==========
+## 
 ```bash
 npm install
 cp .env.example .env.local
