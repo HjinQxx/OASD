@@ -89,6 +89,7 @@ export function NaverMap({
   const [transitRoutes, setTransitRoutes] = useState<TransitRoute[]>([])
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [routeFetchedAt, setRouteFetchedAt] = useState<number | null>(null)
+  const [realtimeFetchedAt, setRealtimeFetchedAt] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState(Date.now())
   const [walkingSpeedMps, setWalkingSpeedMps] = useState<number | null>(null)
   const [routeWalkPoints, setRouteWalkPoints] = useState<WalkPoint[]>([])
@@ -226,11 +227,13 @@ export function NaverMap({
   }
 
   const getRemainingArrivalSeconds = (seconds: number | null) => {
-    if (seconds === null || routeFetchedAt === null) {
+    const baseFetchedAt = realtimeFetchedAt ?? routeFetchedAt
+
+    if (seconds === null || baseFetchedAt === null) {
       return null
     }
 
-    const elapsedSeconds = Math.floor((currentTime - routeFetchedAt) / 1_000)
+    const elapsedSeconds = Math.floor((currentTime - baseFetchedAt) / 1_000)
 
     return Math.max(0, seconds - elapsedSeconds)
   }
@@ -528,6 +531,7 @@ export function NaverMap({
     }
 
     setRealtimeArrival({ status: 'loading' })
+    setRealtimeFetchedAt(null)
 
     try {
       const arrival = firstBusStep
@@ -536,17 +540,19 @@ export function NaverMap({
           ? await fetchSubwayArrival(firstSubwayStep)
           : null
 
-      setRealtimeArrival(
-        arrival
-          ? { status: 'available', arrival }
-          : {
-              status: 'unavailable',
-              message: firstBusStep
-                ? '해당 버스의 실시간 도착정보가 없습니다.'
-                : '해당 지하철의 실시간 도착정보가 없습니다.',
-            },
-      )
+      if (arrival) {
+        setRealtimeFetchedAt(Date.now())
+        setRealtimeArrival({ status: 'available', arrival })
+      } else {
+        setRealtimeArrival({
+          status: 'unavailable',
+          message: firstBusStep
+            ? '해당 버스의 실시간 도착정보가 없습니다.'
+            : '해당 지하철의 실시간 도착정보가 없습니다.',
+        })
+      }
     } catch (error) {
+      setRealtimeFetchedAt(null)
       setRealtimeArrival({
         status: 'unavailable',
         message:
@@ -678,6 +684,7 @@ export function NaverMap({
     setSelectedRouteId(null)
     setRealtimeArrival({ status: 'idle' })
     setRouteFetchedAt(null)
+    setRealtimeFetchedAt(null)
     clearRoutePolyline()
     setRouteStatusText('현재 위치에서 대중교통 경로를 찾는 중입니다.')
 
@@ -839,6 +846,7 @@ export function NaverMap({
     setSelectedRouteId(null)
     setRealtimeArrival({ status: 'idle' })
     setRouteFetchedAt(null)
+    setRealtimeFetchedAt(null)
     finishRouteWalkingSpeedTracking()
     clearRoutePolyline()
     setRouteStatusText('')
