@@ -1,3 +1,5 @@
+import http from 'node:http'
+
 type RequestLike = {
   url?: string
 }
@@ -117,6 +119,32 @@ function formatSubwayArrivalMessage(item: Record<string, unknown>) {
   return '도착 정보 없음'
 }
 
+function fetchJsonOverHttp(url: string) {
+  return new Promise<unknown>((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      const chunks: Buffer[] = []
+
+      response.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+      })
+
+      response.on('end', () => {
+        try {
+          const body = Buffer.concat(chunks).toString('utf-8')
+          resolve(JSON.parse(body) as unknown)
+        } catch (error) {
+          reject(error)
+        }
+      })
+    })
+
+    request.on('error', reject)
+    request.setTimeout(10_000, () => {
+      request.destroy(new Error('Subway API request timed out.'))
+    })
+  })
+}
+
 export default async function handler(request: RequestLike, response: ResponseLike) {
   response.setHeader?.('Content-Type', 'application/json; charset=utf-8')
 
@@ -140,15 +168,12 @@ export default async function handler(request: RequestLike, response: ResponseLi
     return
   }
 
-  const apiUrl = new URL(
-    `https://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
-      stationName,
-    )}`,
-  )
+  const apiUrl = `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
+    stationName,
+  )}`
 
   try {
-    const subwayResponse = await fetch(apiUrl)
-    const responseData = (await subwayResponse.json()) as unknown
+    const responseData = await fetchJsonOverHttp(apiUrl)
 
     if (!isRecord(responseData) || !isRecord(responseData.errorMessage)) {
       response.status(502).json({ message: '지하철 실시간 응답이 올바르지 않습니다.' })
@@ -158,7 +183,7 @@ export default async function handler(request: RequestLike, response: ResponseLi
     const statusCode = getString(responseData.errorMessage.code)
     if (statusCode && statusCode !== 'INFO-000') {
       response
-        .status(subwayResponse.ok ? 404 : subwayResponse.status)
+        .status(404)
         .json({
           message:
             getString(responseData.errorMessage.message) ||

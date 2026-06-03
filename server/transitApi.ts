@@ -1,3 +1,5 @@
+import http from 'node:http'
+
 const ODSAY_REFERER = 'http://localhost:5173/'
 
 type SeoulBusArrivalQuery = {
@@ -22,6 +24,32 @@ type SeoulSubwayArrivalQuery = {
 type JsonResponse = {
   status: number
   body: unknown
+}
+
+function fetchJsonOverHttp(url: string) {
+  return new Promise<unknown>((resolve, reject) => {
+    const request = http.get(url, (response) => {
+      const chunks: Buffer[] = []
+
+      response.on('data', (chunk) => {
+        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+      })
+
+      response.on('end', () => {
+        try {
+          const body = Buffer.concat(chunks).toString('utf-8')
+          resolve(JSON.parse(body) as unknown)
+        } catch (error) {
+          reject(error)
+        }
+      })
+    })
+
+    request.on('error', reject)
+    request.setTimeout(10_000, () => {
+      request.destroy(new Error('Subway API request timed out.'))
+    })
+  })
 }
 
 function parseCoordinate(value: string | null) {
@@ -593,15 +621,12 @@ export async function handleSeoulSubwayArrivals(requestUrl: string, apiKey: stri
     } satisfies JsonResponse
   }
 
-  const apiUrl = new URL(
-    `https://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
-      stationName,
-    )}`,
-  )
+  const apiUrl = `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
+    stationName,
+  )}`
 
   try {
-    const subwayResponse = await fetch(apiUrl)
-    const responseData = (await subwayResponse.json()) as unknown
+    const responseData = await fetchJsonOverHttp(apiUrl)
     const result = parseSeoulSubwayArrival(responseData, {
       stationName,
       lineName,
@@ -616,7 +641,7 @@ export async function handleSeoulSubwayArrivals(requestUrl: string, apiKey: stri
     }
 
     return {
-      status: subwayResponse.ok ? 404 : subwayResponse.status,
+      status: 404,
       body: {
         message: result?.message ?? '지하철 실시간 도착정보를 찾지 못했습니다.',
       },
