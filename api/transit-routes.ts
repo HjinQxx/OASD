@@ -1,4 +1,4 @@
-import { handleTransitRoutes } from '../server/transitApi'
+import { handleTransitRoutes } from './_transitApi'
 
 type RequestLike = {
   url?: string

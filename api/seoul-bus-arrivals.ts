@@ -1,4 +1,4 @@
-import { handleSeoulBusArrivals } from '../server/transitApi'
+import { handleSeoulBusArrivals } from './_transitApi'
 
 type RequestLike = {
   url?: string
