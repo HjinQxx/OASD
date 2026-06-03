@@ -119,6 +119,30 @@ function formatSubwayArrivalMessage(item: Record<string, unknown>) {
   return '도착 정보 없음'
 }
 
+function getSubwayArrivalSeconds(item: Record<string, unknown>) {
+  const arrivalSeconds = getNumberOrNull(item.barvlDt)
+  const arrivalCode = getString(item.arvlCd).trim()
+  const message = getString(item.arvlMsg2).trim()
+
+  if (arrivalSeconds === null) {
+    return null
+  }
+
+  if (arrivalSeconds > 0) {
+    return arrivalSeconds
+  }
+
+  if (arrivalCode === '0' || arrivalCode === '1' || arrivalCode === '5') {
+    return 0
+  }
+
+  if (message.includes('도착') || message.includes('진입')) {
+    return 0
+  }
+
+  return null
+}
+
 function fetchJsonOverHttp(url: string) {
   return new Promise<unknown>((resolve, reject) => {
     const request = http.get(url, (response) => {
@@ -229,8 +253,8 @@ export default async function handler(request: RequestLike, response: ResponseLi
         routeName: lineName,
         firstMessage: formatSubwayArrivalMessage(firstArrival),
         secondMessage: secondArrival ? formatSubwayArrivalMessage(secondArrival) : '',
-        firstArrivalSeconds: getNumberOrNull(firstArrival.barvlDt),
-        secondArrivalSeconds: secondArrival ? getNumberOrNull(secondArrival.barvlDt) : null,
+        firstArrivalSeconds: getSubwayArrivalSeconds(firstArrival),
+        secondArrivalSeconds: secondArrival ? getSubwayArrivalSeconds(secondArrival) : null,
         congestion: '',
       },
     })

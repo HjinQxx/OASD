@@ -13,7 +13,6 @@ import {
 import {
   createSpeedSample,
   getPreferredWalkingSpeed,
-  getWalkStats,
   loadSpeedSamples,
   saveSpeedSamples,
   SPEED_SAMPLES_UPDATED_EVENT,
@@ -92,8 +91,6 @@ export function NaverMap({
   const [realtimeFetchedAt, setRealtimeFetchedAt] = useState<number | null>(null)
   const [currentTime, setCurrentTime] = useState(Date.now())
   const [walkingSpeedMps, setWalkingSpeedMps] = useState<number | null>(null)
-  const [routeWalkPoints, setRouteWalkPoints] = useState<WalkPoint[]>([])
-  const [routeWalkLabel, setRouteWalkLabel] = useState<string | null>(null)
   const [realtimeArrival, setRealtimeArrival] = useState<RealtimeArrivalState>({
     status: 'idle',
   })
@@ -176,11 +173,6 @@ export function NaverMap({
       adjustedTransitRoutes,
     ],
   )
-  const routeWalkStats = useMemo(() => getWalkStats(routeWalkPoints), [routeWalkPoints])
-
-  const formatTrackingDistance = (meters: number) =>
-    meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${meters.toFixed(0)} m`
-
   useEffect(() => {
     isPickingPlaceRef.current = isPickingPlace
     onPickPlaceLocationRef.current = onPickPlaceLocation
@@ -266,8 +258,6 @@ export function NaverMap({
 
     routeWalkPointsRef.current = []
     routeWalkLabelRef.current = null
-    setRouteWalkPoints([])
-    setRouteWalkLabel(null)
 
     if (!sample) {
       return
@@ -358,8 +348,6 @@ export function NaverMap({
 
             routeWalkPointsRef.current = []
             routeWalkLabelRef.current = walkSegmentLabel
-            setRouteWalkPoints([])
-            setRouteWalkLabel(walkSegmentLabel)
           }
 
           const lastPoint = routeWalkPointsRef.current[routeWalkPointsRef.current.length - 1]
@@ -371,7 +359,6 @@ export function NaverMap({
               movedDistance >= AUTO_WALK_POINT_MIN_DISTANCE_METERS)
           ) {
             routeWalkPointsRef.current = [...routeWalkPointsRef.current, nextPoint]
-            setRouteWalkPoints(routeWalkPointsRef.current)
           }
         }
 
@@ -1197,19 +1184,6 @@ export function NaverMap({
                       )}
                       {route.firstRideLabel !== '도보' && realtimeArrival.status === 'unavailable' && (
                         <small className="refreshHint">{realtimeArrival.message}</small>
-                      )}
-                      {routeWalkLabel && selectedRouteId === route.id && (
-                        <div className="walkTrackingStatus">
-                          <span>GPS 측정 도보 속력</span>
-                          <strong>
-                            {routeWalkStats.speedMps > 0
-                              ? `${routeWalkStats.speedMps.toFixed(2)} m/s`
-                              : '측정 중'}
-                          </strong>
-                          <small>
-                            {formatTrackingDistance(routeWalkStats.distanceMeters)} · 분석 저장용
-                          </small>
-                        </div>
                       )}
                       <small className="refreshHint">
                         도착 정보는 선택한 경로에서 약{' '}
