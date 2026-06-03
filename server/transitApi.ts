@@ -594,7 +594,7 @@ export async function handleSeoulSubwayArrivals(requestUrl: string, apiKey: stri
   }
 
   const apiUrl = new URL(
-    `http://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
+    `https://swopenAPI.seoul.go.kr/api/subway/${apiKey}/json/realtimeStationArrival/0/20/${encodeURIComponent(
       stationName,
     )}`,
   )

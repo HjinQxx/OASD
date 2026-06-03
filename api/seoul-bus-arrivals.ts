@@ -215,8 +215,13 @@ async function fetchOdsayBusArrival(apiKey: string, query: SeoulBusArrivalQuery)
     const matchedRealtime = findOdsayRealtimeItem(realtimeItems, query)
     if (matchedRealtime) {
       const routeName = getString(matchedRealtime.routeNm) || query.routeName
-      const arrivals = Array.isArray(matchedRealtime.arrival) ? matchedRealtime.arrival : []
-      const [firstArrival, secondArrival] = arrivals.filter(isRecord)
+      const firstArrival = isRecord(matchedRealtime.arrival1) ? matchedRealtime.arrival1 : null
+      const secondArrival = isRecord(matchedRealtime.arrival2) ? matchedRealtime.arrival2 : null
+
+      if (!firstArrival && !secondArrival) {
+        matchedRouteNameWithoutArrival = routeName
+        continue
+      }
 
       return {
         arrival: {
@@ -225,7 +230,7 @@ async function fetchOdsayBusArrival(apiKey: string, query: SeoulBusArrivalQuery)
           secondMessage: secondArrival ? formatOdsayArrivalMessage(secondArrival) : '',
           firstArrivalSeconds: firstArrival ? getNumberOrNull(firstArrival.arrivalSec) : null,
           secondArrivalSeconds: secondArrival ? getNumberOrNull(secondArrival.arrivalSec) : null,
-          congestion: '',
+          congestion: firstArrival ? String(getNumberOrNull(firstArrival.congestion) ?? '') : '',
         },
       }
     }
