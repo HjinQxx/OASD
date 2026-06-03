@@ -33,7 +33,8 @@ open source ai design - 기말과제
 
 
 
-## 
+##
+하단의 내용은 CODEX가 작성했으며, 혹시 모를 상황에 대비해 남겨두었습니다.
 ```bash
 npm install
 cp .env.example .env.local
