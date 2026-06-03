@@ -1,8 +1,8 @@
 # OASD
 
-open source ai design
+open source ai design - 기말과제
 
-## Personal Map
+## personal_map
  
 서울/경기권 이동 경로를 찾고, 버스/지하철 실시간 도착 정보를 확인하고, 도보 속력을 반영해 경로 시간을 보정하는 Vite + React + TypeScript 앱입니다.
 
