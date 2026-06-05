@@ -1,6 +1,6 @@
 # OASD
 
-open source ai design - 기말과제
+open source ai design - 기말과제 (6/3일 제출)
 
 ## personal_map
  
