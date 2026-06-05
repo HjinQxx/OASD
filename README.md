@@ -20,10 +20,10 @@ open source ai design - 기말과제 (6/3일 제출)
 ## 참고사항
 1. (2)의 속력을 등록하지 않으면 성인 남성의 평균속력 1.39m/s로 시간 산출
 2. (3)의 장소등록이 선행되지 않으면 길찾기가 불가능합니다.
-3. 앱 제작을 위해 사용한 외부 API는 다음과 같음
-   VITE_NAVER_MAP_CLIENT_ID (지도 사용을 위한 네이버 클라우드 플랫폼 지도 API)
-   ODSAY_API_KEY (길찾기 경로 및 대중교통 현황을 위한 오디세이 API)
-   SEOUL_SUBWAY_API_KEY (지하철 현황을 위한 서울 열린데이터광장 API)
+3. 앱 제작을 위해 사용한 외부 API는 다음과 같음 : 
+   1) VITE_NAVER_MAP_CLIENT_ID (지도 사용을 위한 네이버 클라우드 플랫폼 지도 API)
+   2) ODSAY_API_KEY (길찾기 경로 및 대중교통 현황을 위한 오디세이 API)
+   3) SEOUL_SUBWAY_API_KEY (지하철 현황을 위한 서울 열린데이터광장 API)
 
    API의 키는 전부 환경변수로 분리해 적용했습니다.
 
